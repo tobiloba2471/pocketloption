@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketLoption - Next-Gen Trading Platform</title>
+    <!-- Tailwind CSS for modern layout structure -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for real-time market data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for trading dashboard UI icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Modern Trading Interface Theme Customizations */
+        body {
+            background: linear-gradient(135deg, #0B1020 0%, #111827 50%, #1E3A8A 100%);
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        .bg-main-dark { background-color: #0B1020; }
+        .bg-secondary-dark { background-color: #111827; }
+        .bg-card-dark { background-color: #1A2235; }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .text-secondary-gray { color: #9CA3AF; }
+        .text-muted-gray { color: #6B7280; }
+        
+        /* Interactive element transitions */
+        .btn-primary {
+            background: linear-gradient(to right, #3B82F6, #06B6D4);
+            color: #FFFFFF;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            opacity: 0.95;
+        }
+        .btn-buy { background-color: #22C55E; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2); }
+        .btn-buy:hover { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); }
+        .btn-sell { background-color: #EF4444; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
+        .btn-sell:hover { box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+        
+        /* Custom scrollbar configurations for trading lists */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0B1020; }
+        ::-webkit-scrollbar-thumb { background: #1A2235; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- PLATFORM HEADER NAVIGATION -->
+    <header class="glass-panel sticky top-0 z-50 px-4 lg:px-8 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('landing-page')">
+            <!-- Simulated Native SVG Logo Structure matching PocketLoption branding -->
+            <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 20C20 20 45 15 55 40C65 65 90 60 90 60" stroke="#3B82F6" stroke-width="12" stroke-linecap="round"/>
+                <circle cx="65" cy="45" r="20" fill="#06B6D4" fill-opacity="0.7"/>
+                <path d="M25 80H45" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+            </svg>
+            <span class="text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Pocket<span class="text-blue-500">Loption</span></span>
+        </div>
+        
+        <nav class="hidden md:flex space-x-6 text-sm text-secondary-gray font-medium">
+            <a href="#" onclick="switchView('landing-page')" class="hover:text-white transition">Home</a>
+            <a href="#markets" onclick="switchView('landing-page')" class="hover:text-white transition">Markets</a>
+            <a href="#features" onclick="switchView('landing-page')" class="hover:text-white transition">Features</a>
+            <a href="#" onclick="switchView('trading-dashboard')" class="hover:text-blue-400 text-cyan-400 transition font-semibold"><i class="fa-solid fa-chart-line mr-1"></i> Live Terminal</a>
+        </nav>
+
+        <div class="flex items-center space-x-3">
+            <div id="auth-buttons" class="flex space-x-2">
+                <button onclick="openAuthModal('login')" class="px-4 py-1.5 text-sm text-secondary-gray hover:text-white transition">Log In</button>
+                <button onclick="openAuthModal('register')" class="px-4 py-1.5 text-sm rounded-md btn-primary font-medium">Registration</button>
+            </div>
+            <div id="user-profile-header" class="hidden flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <p id="header-account-type" class="text-xs text-yellow-400 font-bold tracking-widest uppercase">Demo Account</p>
+                    <p id="header-balance" class="text-sm font-mono text-green-400 font-bold">$10,000.00</p>
+                </div>
+                <div class="w-9 h-9 rounded-full bg-blue-600 border border-white/20 flex items-center justify-center cursor-pointer" onclick="switchView('user-profile')">
+                    <i class="fa-solid fa-user text-sm"></i>
+                </div>
+                <button onclick="logout()" class="text-muted-gray hover:text-red-400 transition text-sm"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT VIEWS SYSTEM CONTAINER -->
+    <main id="view-container">
+
+        <!-- VIEW 1: HOME / LANDING PAGE -->
+        <section id="landing-page" class="view-section block container mx-auto px-4 py-12">
+            <!-- Hero High Conversion Element Banner -->
+            <div class="grid lg:grid-cols-2 gap-12 items-center pt-6 pb-16">
+                <div class="space-y-6">
+                    <div class="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-500/30 px-3 py-1 rounded-full text-xs text-cyan-400 font-medium">
+                        <i class="fa-solid fa-bolt"></i> <span>Smart Binary & Digital Options Terminal</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-tight">
+                        Trade Global Markets <br><span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">In 1 Single Click</span>
+                    </h1>
+                    <p class="text-secondary-gray text-lg max-w-xl">
+                        Experience lightning-fast execution on over 100+ high-yield assets. Start trading instantly with competitive terms built for modern growth scaling.
+                    </p>
+                    
+                    <!-- Value Metrics Grid Indicators -->
+                    <div class="grid grid-cols-3 gap-4 border-y border-white/10 py-6 my-4">
+                        <div>
+                            <p class="text-2xl sm:text-3xl font-mono font-bold text-white">$5</p>
+                            <p class="text-xs text-muted-gray uppercase tracking-wider">Minimum Deposit</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl sm:text-3xl font-mono font-bold text-white">$1</p>
+                            <p class="text-xs text-muted-gray uppercase tracking-wider">Minimum Investment</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl sm:text-3xl font-mono font-bold text-cyan-400">Up to 96%</p>
+                            <p class="text-xs text-muted-gray uppercase tracking-wider">Profit Return</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                        <button onclick="switchView('trading-dashboard')" class="px-8 py-4 rounded-xl btn-primary font-bold text-center transition shadow-lg">Start Free Demo Trading</button>
+                        <button onclick="openAuthModal('register')" class="px-8 py-4 rounded-xl bg-card-dark border border-white/10 hover:bg-white/5 font-bold text-center transition">Open Real Account</button>
+                    </div>
+                </div>
+
+                <!-- Preview Display Architecture mockup -->
+                <div class="relative max-w-xl mx-auto lg:ml-auto w-full">
+                    <div class="absolute -top-10 -left-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl"></div>
+                    <div class="glass-panel rounded-2xl p-4 shadow-2xl border-white/10 relative overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                                <span class="text-xs text-muted-gray ml-2 font-mono">terminal_preview.sys</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/20 text-green-400 tracking-wider uppercase">Live Connection</span>
+                        </div>
+                        <!-- Decorative mock trading visualizer -->
+                        <div class="h-64 bg-main-dark/80 rounded-xl flex items-center justify-center relative p-2">
+                            <div class="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,_transparent_1px),_linear-gradient(90deg,_rgba(255,255,255,0.05)_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
+                            <p class="text-sm font-mono text-cyan-400 animate-pulse"><i class="fa-solid fa-chart-area mr-2"></i> Real-time multi-chart streaming matrix available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASSET MARKET RADAR DISPLAY SHOWCASE -->
+            <div id="markets" class="my-20 space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Active High-Volatility Assets</h2>
+                        <p class="text-secondary-gray text-sm">Real-time payouts from global top-tier liquid exchanges.</p>
+                    </div>
+                    <div class="flex space-x-2 overflow-x-auto w-full md:w-auto pb-2">
+                        <button class="px-4 py-1.5 rounded-lg bg-blue-600 text-xs font-bold text-white whitespace-nowrap">Popular</button>
+                        <button class="px-4 py-1.5 rounded-lg bg-card-dark text-xs font-bold text-secondary-gray hover:text-white whitespace-nowrap">Crypto</button>
+                        <button class="px-4 py-1.5 rounded-lg bg-card-dark text-xs font-bold text-secondary-gray hover:text-white whitespace-nowrap">Forex FX</button>
+                        <button class="px-4 py-1.5 rounded-lg bg-card-dark text-xs font-bold text-secondary-gray hover:text-white whitespace-nowrap">OTC Market</button>
+                    </div>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Asset Loop Template Structural Elements -->
+                    <div class="glass-panel p-4 rounded-xl hover:border-blue-500/40 transition cursor-pointer" onclick="switchView('trading-dashboard')">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold font-mono text-white">EUR/USD <span class="text-[10px] px-1 bg-amber-500/20 text-amber-400 font-sans rounded">OTC</span></h3>
+                                <p class="text-xs text-muted-gray">Euro / US Dollar</p>
+                            </div>
+                            <span class="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded">96% Return</span>
+                        </div>
+                        <div class="mt-4 flex justify-between items-baseline">
+                            <span class="text-lg font-mono font-bold tracking-tight text-white" id="market-eurusd">1.08452</span>
+                            <span class="text-xs font-mono text-green-400 font-semibold">+0.14%</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl hover:border-blue-500/40 transition cursor-pointer" onclick="switchView('trading-dashboard')">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold font-mono text-white">BTC/USDT</h3>
+                                <p class="text-xs text-muted-gray">Bitcoin Core Index</p>
+                            </div>
+                            <span class="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded">89% Return</span>
+                        </div>
+                        <div class="mt-4 flex justify-between items-baseline">
+                            <span class="text-lg font-mono font-bold tracking-tight text-white" id="market-btcusdt">96,420.50</span>
+                            <span class="text-xs font-mono text-red-400 font-semibold">-0.82%</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl hover:border-blue-500/40 transition cursor-pointer" onclick="switchView('trading-dashboard')">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold font-mono text-white">Apple Inc (AAPL)</h3>
+                                <p class="text-xs text-muted-gray">Equity Asset Group</p>
+                            </div>
+                            <span class="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded">92% Return</span>
+                        </div>
+                        <div class="mt-4 flex justify-between items-baseline">
+                            <span class="text-lg font-mono font-bold tracking-tight text-white" id="market-aapl">182.34</span>
+                            <span class="text-xs font-mono text-green-400 font-semibold">+1.45%</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl hover:border-blue-500/40 transition cursor-pointer" onclick="switchView('trading-dashboard')">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold font-mono text-white">XAU/USD</h3>
+                                <p class="text-xs text-muted-gray">Gold Spot Commodities</p>
+                            </div>
+                            <span class="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded">85% Return</span>
+                        </div>
+                        <div class="mt-4 flex justify-between items-baseline">
+                            <span class="text-lg font-mono font-bold tracking-tight text-white" id="market-xauusd">2,342.10</span>
+                            <span class="text-xs font-mono text-green-400 font-semibold">+0.38%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PLATFORM EDUCATIONAL & SUPPORT SYSTEM PROFILES -->
+            <div id="features" class="grid md:grid-cols-3 gap-8 my-20">
+                <div class="bg-card-dark/60 p-6 rounded-xl border border-white/5 space-y-3">
+                    <div class="w-12 h-12 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <h3 class="text-lg font-bold">Integrated Academy</h3>
+                    <p class="text-sm text-secondary-gray leading-relaxed">Access full binary trading options frameworks, execution strategies, and video masterclasses directly built into your standard interface cockpit.</p>
+                </div>
+                <div class="bg-card-dark/60 p-6 rounded-xl border border-white/5 space-y-3">
+                    <div class="w-12 h-12 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl"><i class="fa-solid fa-users-viewfinder"></i></div>
+                    <h3 class="text-lg font-bold">Social Copy Engine</h3>
+                    <p class="text-sm text-secondary-gray leading-relaxed">Monitor public order books and automatically follow verified high-tier operators with customizable trade sizing parameters.</p>
+                </div>
+                <div class="bg-card-dark/60 p-6 rounded-xl border border-white/5 space-y-3">
+                    <div class="w-12 h-12 rounded-lg bg-green-500/10 text-green-400 flex items-center justify-center text-xl"><i class="fa-solid fa-trophy"></i></div>
+                    <h3 class="text-lg font-bold">Live Global Tournaments</h3>
+                    <p class="text-sm text-secondary-gray leading-relaxed">Compete daily for verified cash prizes using either standard live balances or dedicated structural tournament demo pools.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: CORE LIVE TRADING DASHBOARD -->
+        <section id="trading-dashboard" class="view-section hidden h-[calc(100vh-62px)] flex flex-col lg:flex-row overflow-hidden bg-main-dark">
+            
+            <!-- LEFT PANEL: COLLAPSIBLE FUNCTIONAL NAVIGATION STRIP -->
+            <div class="lg:w-16 bg-secondary-dark border-r border-white/10 flex lg:flex-col justify-around lg:justify-start items-center lg:py-6 overflow-x-auto lg:overflow-x-visible space-y-0 lg:space-y-6 px-2 py-3 lg:px-0">
+                <button onclick="toggleSidePanel('assets')" class="w-12 h-12 rounded-xl flex flex-col justify-center items-center text-secondary-gray hover:text-white transition group relative" title="Asset Groups">
+                    <i class="fa-solid fa-coins text-lg"></i><span class="text-[9px] mt-1 font-medium">Assets</span>
+                </button>
+                <button onclick="toggleSidePanel('social')" class="w-12 h-12 rounded-xl flex flex-col justify-center items-center text-secondary-gray hover:text-white transition group relative" title="Copy Trading Systems">
+                    <i class="fa-solid fa-user-group text-lg"></i><span class="text-[9px] mt-1 font-medium">Social</span>
+                </button>
+                <button onclick="toggleSidePanel('tournaments')" class="w-12 h-12 rounded-xl flex flex-col justify-center items-center text-secondary-gray hover:text-white transition group relative" title="Tournaments Engine">
+                    <i class="fa-solid fa-trophy text-lg"></i><span class="text-[9px] mt-1 font-medium">Contests</span>
+                </button>
+                <button onclick="toggleSidePanel('wallet')" class="w-12 h-12 rounded-xl flex flex-col justify-center items-center text-secondary-gray hover:text-white transition group relative" title="Cashier Management">
+                    <i class="fa-solid fa-wallet text-lg"></i><span class="text-[9px] mt-1 font-medium">Wallet</span>
+                </button>
+            </div>
+
+            <!-- MIDDLE LEFT CONTEXT SLIDE-IN SYSTEM BOXES -->
+            <div id="side-context-panel" class="hidden w-full lg:w-72 bg-card-dark border-r border-white/10 flex-col overflow-y-auto">
+                <div class="p-4 border-b border-white/10 flex justify-between items-center bg-secondary-dark sticky top-0 z-10">
+                    <h3 id="context-panel-title" class="font-bold text-sm tracking-wide uppercase text-blue-400">Context Workspace</h3>
+                    <button onclick="toggleSidePanel(null)" class="text-muted-gray hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <!-- Interactive contexts rendered asynchronously via execution methods below -->
+                <div id="context-panel-content" class="p-3 space-y-2"></div>
+            </div>
+
+            <!-- CORE GRAPH MONITOR ENGINE FRAMEWORK -->
+            <div class="flex-1 flex flex-col relative bg-main-dark">
+                <!-- Instrument Selection Banner Strip -->
+                <div class="h-12 border-b border-white/10 px-4 flex justify-between items-center bg-secondary-dark/60 z-10">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="toggleSidePanel('assets')" class="bg-card-dark border border-white/10 hover:border-white/20 px-3 py-1 rounded text-xs flex items-center space-x-2 font-mono text-white transition">
+                            <span id="active-asset-display" class="font-bold">EUR/USD (OTC)</span>
+                            <span id="active-payout-display" class="text-green-400 font-bold">96%</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-muted-gray"></i>
+                        </button>
+                        <div class="hidden sm:flex items-center space-x-1 bg-main-dark px-2 py-1 rounded border border-white/5 text-[11px] text-secondary-gray font-mono">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-ping mr-1"></span> Feed: Live Matrix
+                        </div>
+                    </div>
+                    <!-- Chart Configuration Parameters Tools -->
+                    <div class="flex items-center space-x-2">
+                        <button class="w-8 h-8 rounded bg-card-dark border border-white/10 text-secondary-gray hover:text-white flex items-center justify-center text-xs" title="Indicators Module"><i class="fa-solid fa-wave-square"></i></button>
+                        <button class="w-8 h-8 rounded bg-card-dark border border-white/10 text-secondary-gray hover:text-white flex items-center justify-center text-xs" title="Timeframes Selector"><span class="font-bold text-[10px]">M1</span></button>
+                        <button class="w-8 h-8 rounded bg-card-dark border border-white/10 text-secondary-gray hover:text-white flex items-center justify-center text-xs" title="Drawing Tool Library"><i class="fa-solid fa-pen-ruler"></i></button>
+                    </div>
+                </div>
+
+                <!-- Main Chart Node Integration Area -->
+                <div class="flex-1 p-4 relative min-h-[280px]">
+                    <canvas id="liveTradingChart" class="w-full h-full"></canvas>
+                    
+                    <!-- Open Trade Positions Overlay Tracker Matrix -->
+                    <div id="chart-positions-overlay" class="absolute top-4 left-4 space-y-1 hidden">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-400 font-mono border border-blue-500/30">Active Orders Evaluation Loop Running</span>
+                    </div>
+                </div>
+
+                <!-- LOWER PANEL: COMPREHENSIVE RECENT ORDER ACCOUNTABILITY STRIP -->
+                <div class="h-44 border-t border-white/10 bg-secondary-dark flex flex-col overflow-hidden">
+                    <div class="flex border-b border-white/10 px-4 bg-main-dark/50 text-xs font-semibold text-secondary-gray">
+                        <button class="px-4 py-2.5 border-b-2 border-blue-500 text-white font-bold">Open Positions (<span id="open-trades-count" class="font-mono">0</span>)</button>
+                        <button class="px-4 py-2.5 hover:text-white transition">Closed History Logs</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-2" id="trading-positions-log-container">
+                        <table class="w-full text-left text-xs font-mono">
+                            <thead>
+                                <tr class="text-muted-gray border-b border-white/5">
+                                    <th class="p-2 font-medium">Asset ID</th>
+                                    <th class="p-2 font-medium">Direction</th>
+                                    <th class="p-2 font-medium">Strike Price</th>
+                                    <th class="p-2 font-medium">Investment</th>
+                                    <th class="p-2 font-medium">Expiration Clock</th>
+                                    <th class="p-2 font-medium">Status/Payout</th>
+                                </tr>
+                            </thead>
+                            <tbody id="active-positions-table-body" class="divide-y divide-white/5 text-secondary-gray">
+                                <!-- Dynamic standard insertion logic below -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: HIGH FREQUENCY TRADE PARAMETER FORM EXECUTION PANEL -->
+            <div class="w-full lg:w-72 bg-secondary-dark border-l border-white/10 p-4 flex flex-col justify-between space-y-4">
+                <div class="space-y-4">
+                    <div class="bg-card-dark p-3 rounded-xl border border-white/10 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-muted-gray uppercase tracking-wider font-bold">Wallet Dynamic State</p>
+                            <select id="account-type-selector" onchange="toggleAccountBalanceSystem()" class="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer mt-0.5">
+                                <option value="demo" class="bg-card-dark text-white">Demo Balance Account</option>
+                                <option value="real" class="bg-card-dark text-white">Real Cash Portfolio</option>
+                            </select>
+                        </div>
+                        <p id="dashboard-balance-display" class="font-mono text-base font-bold text-green-400">$10,000.00</p>
+                    </div>
+
+                    <!-- Expiration Selection Framework -->
+                    <div class="space-y-1">
+                        <label class="text-[11px] text-secondary-gray font-bold uppercase tracking-wider">Expiration Time Frame</label>
+                        <div class="grid grid-cols-4 gap-1">
+                            <button class="p-2 rounded bg-card-dark border border-white/10 text-xs font-mono font-bold text-white border-blue-500">00:30</button>
+                            <button class="p-2 rounded bg-card-dark border border-white/5 text-xs font-mono text-secondary-gray hover:text-white">01:00</button>
+                            <button class="p-2 rounded bg-card-dark border border-white/5 text-xs font-mono text-secondary-gray hover:text-white">02:00</button>
+                            <button class="p-2 rounded bg-card-dark border border-white/5 text-xs font-mono text-secondary-gray hover:text-white">05:00</button>
+                        </div>
+                    </div>
+
+                    <!-- Size Investment Input Matrix Section -->
+                    <div class="space-y-1">
+                        <label class="text-[11px] text-secondary-gray font-bold uppercase tracking-wider flex justify-between">
+                            <span>Trade Execution Capital Size</span>
+                            <span class="text-muted-gray font-mono">Min $1</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 font-mono text-muted-gray text-sm">$</span>
+                            <input type="number" id="trade-amount-input" value="100" min="1" max="5000" class="w-full bg-card-dark border border-white/10 rounded-xl p-2.5 pl-7 text-sm font-mono font-bold text-white focus:outline-none focus:border-blue-500">
+                            <div class="absolute right-2 top-1.5 flex space-x-1">
+                                <button onclick="adjustTradeAmount(-10)" class="w-6 h-6 rounded bg-main-dark hover:bg-white/10 flex items-center justify-center text-xs text-secondary-gray font-bold">-</button>
+                                <button onclick="adjustTradeAmount(10)" class="w-6 h-6 rounded bg-main-dark hover:bg-white/10 flex items-center justify-center text-xs text-secondary-gray font-bold">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Return Projection Indicator Grid -->
+                    <div class="bg-main-dark/40 p-3 rounded-xl border border-white/5 space-y-1.5 text-xs font-mono">
+                        <div class="flex justify-between text-secondary-gray">
+                            <span>Asset Payout Scalar:</span>
+                            <span id="payout-ratio-metric" class="text-white font-bold">96%</span>
+                        </div>
+                        <div class="flex justify-between text-secondary-gray">
+                            <span>Projected Net Return:</span>
+                            <span id="payout-profit-metric" class="text-green-400 font-bold font-sans">+$96.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HIGHER / LOWER CORE ACTION TRIGGERS -->
+                <div class="space-y-2">
+                    <button onclick="executeBinaryTradePosition('CALL')" class="w-full py-4 rounded-xl btn-buy text-white font-black text-sm tracking-widest uppercase flex justify-between px-6 transition transform active:scale-95">
+                        <span><i class="fa-solid fa-arrow-trend-up mr-2"></i> Higher Call</span>
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button onclick="executeBinaryTradePosition('PUT')" class="w-full py-4 rounded-xl btn-sell text-white font-black text-sm tracking-widest uppercase flex justify-between px-6 transition transform active:scale-95">
+                        <span><i class="fa-solid fa-arrow-trend-down mr-2"></i> Lower Put</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: ACCOUNT & IDENTITY DASHBOARD MANAGEMENT PROFILE -->
+        <section id="user-profile" class="view-section hidden container mx-auto px-4 py-8 max-w-4xl">
+            <h2 class="text-2xl font-black mb-6 tracking-tight"><i class="fa-solid fa-sliders text-blue-500 mr-2"></i> Account Control Station</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Left Nav Checklist Layout Profiles -->
+                <div class="space-y-2">
+                    <button class="w-full text-left p-3 rounded-xl bg-blue-600 text-xs font-bold text-white flex items-center space-x-3"><i class="fa-solid fa-user-shield"></i> <span>Verification Security & KYC</span></button>
+                    <button class="w-full text-left p-3 rounded-xl bg-card-dark hover:bg-white/5 text-xs font-bold text-secondary-gray hover:text-white flex items-center space-x-3"><i class="fa-solid fa-clock-rotate-left"></i> <span>Global Account Audit Trail</span></button>
+                    <button onclick="logout()" class="w-full text-left p-3 rounded-xl bg-red-950/20 border border-red-500/20 text-xs font-bold text-red-400 flex items-center space-x-3 hover:bg-red-950/40 transition"><i class="fa-solid fa-power-off"></i> <span>Terminate Session Node</span></button>
+                </div>
+                
+                <!-- Main Content Context Frame Area Container Panels -->
+                <div class="md:col-span-2 space-y-6">
+                    <div class="glass-panel p-6 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-base text-white">Identity Credentials Engine</h3>
+                            <span class="px-2 py-0.5 rounded text-[10px] bg-yellow-500/20 text-amber-400 border border-yellow-500/30 font-bold uppercase tracking-wider">KYC Unverified</span>
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4 text-xs font-mono">
+                            <div class="bg-main-dark p-3 rounded-lg border border-white/5">
+                                <p class="text-muted-gray text-[10px] uppercase">Registered Identity</p>
+                                <p id="profile-display-email" class="text-white font-bold mt-1">guest@pocketloption.local</p>
+                            </div>
+                            <div class="bg-main-dark p-3 rounded-lg border border-white/5">
+                                <p class="text-muted-gray text-[10px] uppercase">Routing Address Token</p>
+                                <p class="text-white font-bold mt-1">UID-948102384</p>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start space-x-3">
+                            <i class="fa-solid fa-circle-info text-blue-400 mt-0.5 text-sm"></i>
+                            <p class="text-xs text-secondary-gray leading-relaxed">Compliance guidelines mandate verification confirmation protocol mapping before executing high-yield crypto or bank routing settlement operations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: ADMIN CONTROLLERS CONTROL BACKEND PANEL DELEGATE MATRIX -->
+        <section id="admin-panel" class="view-section hidden container mx-auto px-4 py-8">
+            <div class="border border-red-500/30 bg-red-950/10 rounded-2xl p-6 space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/10 pb-4 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-red-400 font-mono tracking-tight"><i class="fa-solid fa-terminal mr-2"></i> Root Core Platform Administration Terminal</h2>
+                        <p class="text-xs text-muted-gray mt-0.5">Global configuration arrays and override controls.</p>
+                    </div>
+                    <span class="px-3 py-1 bg-red-500 text-white font-mono text-xs font-bold rounded-full tracking-widest uppercase">Root Authenticated</span>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-card-dark p-4 rounded-xl border border-white/5">
+                        <p class="text-xs text-muted-gray font-mono uppercase">System Balance Injector</p>
+                        <div class="mt-2 flex space-x-2">
+                            <input type="number" id="admin-inject-amount" value="5000" class="w-full bg-main-dark border border-white/10 rounded px-2 py-1 text-xs font-mono font-bold text-white focus:outline-none">
+                            <button onclick="adminInjectCapital()" class="px-3 py-1 bg-red-600 text-white font-mono text-xs font-bold rounded hover:bg-red-500 transition">Execute</button>
+                        </div>
+                    </div>
+                    <div class="bg-card-dark p-4 rounded-xl border border-white/5">
+                        <p class="text-xs text-muted-gray font-mono uppercase">Market Price Modifier Scalar</p>
+                        <select id="admin-bias-direction" class="w-full mt-2 bg-main-dark border border-white/10 rounded px-2 py-1 text-xs font-mono text-white focus:outline-none">
+                            <option value="none">Standard Organic Market Flow</option>
+                            <option value="up">Forced Growth Upward Drift Bias</option>
+                            <option value="down">Forced Bearish Dropdown Vector</option>
+                        </select>
+                    </div>
+                    <div class="bg-card-dark p-4 rounded-xl border border-white/5">
+                        <p class="text-xs text-muted-gray font-mono uppercase">Platform Risk Threshold Mode</p>
+                        <div class="mt-2 flex space-x-1">
+                            <button class="flex-1 py-1 bg-green-900 text-green-300 text-[10px] font-mono font-bold rounded">Standard</button>
+                            <button class="flex-1 py-1 bg-amber-900 text-amber-300 text-[10px] font-mono font-bold rounded">High Guard</button>
+                        </div>
+                    </div>
+                    <div class="bg-card-dark p-4 rounded-xl border border-white/5">
+                        <p class="text-xs text-muted-gray font-mono uppercase">Audit Infrastructure Logs</p>
+                        <button onclick="alert('System Core Logs: Integrity verification hash matches perfectly. No runtime anomalies recorded.')" class="w-full mt-2 py-1 bg-main-dark border border-white/10 text-secondary-gray text-xs font-mono rounded hover:text-white transition">Query Integrity Trace</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER LINK NETWORKS -->
+    <footer class="border-t border-white/10 bg-main-dark mt-20 py-8 text-xs text-muted-gray">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>&copy; 2026 PocketLoption Terminal Group Inc. All rights reserved operations node execution.</p>
+            <div class="flex space-x-4">
+                <a href="#" class="hover:text-secondary-gray transition">Risk Disclaimers</a>
+                <a href="#" class="hover:text-secondary-gray transition">User Terms & Conditions</a>
+                <a href="#" class="hover:text-secondary-gray transition">Privacy Ledger Protocol</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE AUTHENTICATION REGISTRATION OVERLAY LAYER -->
+    <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-main-dark/80 backdrop-blur-sm">
+        <div class="glass-panel w-full max-w-sm rounded-2xl p-6 space-y-4 relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-muted-gray hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+            <div class="text-center">
+                <h3 id="auth-modal-title" class="text-xl font-black tracking-tight">Access Secure Interface</h3>
+                <p id="auth-modal-subtitle" class="text-xs text-secondary-gray mt-1">Provide your credentials to establish a direct secure session</p>
+            </div>
+            
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[10px] text-secondary-gray font-bold uppercase tracking-wider">Identity Address Email</label>
+                    <input type="email" id="auth-email-input" required placeholder="name@domain.com" class="w-full bg-main-dark border border-white/10 rounded-xl p-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-secondary-gray font-bold uppercase tracking-wider">Access Core Password Key</label>
+                    <input type="password" id="auth-password-input" required placeholder="••••••••••••" class="w-full bg-main-dark border border-white/10 rounded-xl p-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="submit" id="auth-submit-btn" class="w-full py-2.5 rounded-xl btn-primary font-bold text-xs uppercase tracking-wider mt-2">Initialize Session Connection</button>
+            </form>
+
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-white/10"></div>
+                <span class="flex-shrink mx-3 text-[10px] text-muted-gray font-mono uppercase">Alternate Routing Oauth</span>
+                <div class="flex-grow border-t border-white/10"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="triggerSocialOAuthMock('Google API Engine')" class="py-1.5 rounded-lg bg-card-dark border border-white/5 hover:border-white/10 text-[11px] font-bold text-white flex items-center justify-center space-x-2 transition"><i class="fa-brands fa-google text-red-400"></i> <span>Google System</span></button>
+                <button onclick="triggerSocialOAuthMock('Meta Social Protocol')" class="py-1.5 rounded-lg bg-card-dark border border-white/5 hover:border-white/10 text-[11px] font-bold text-white flex items-center justify-center space-x-2 transition"><i class="fa-brands fa-facebook text-blue-500"></i> <span>Meta Server</span></button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- COMPLETE INTERACTIVE OPERATIONS ARCHITECTURE JAVASCRIPT ENGINE -->
+    <script>
+        // GLOBAL APPLICATION SYSTEM VARIABLES
+        let currentAuthenticatedUser = null;
+        let activeInterfaceView = 'landing-page';
+        let walletBalances = { demo: 10000.00, real: 0.00 };
+        let activeBalanceMode = 'demo';
+        let currentMarketSelected = 'EUR/USD';
+        let activeSidePanelOpen = null;
+        let runningPositionsHistoryLog = [];
+
+        // LIQUID TICK DATA STREAM SIMULATOR STRUCT
+        let simulatedAssetPriceMatrix = {
+            'EUR/USD': { price: 1.08450, delta: 0.00002, ratio: 0.96, type: 'OTC' },
+            'BTC/USDT': { price: 96420.00, delta: 3.50, ratio: 0.89, type: 'LIVE' },
+            'AAPL': { price: 182.30, delta: 0.02, ratio: 0.92, type: 'LIVE' },
+            'XAU/USD': { price: 2342.00, delta: 0.15, ratio: 0.85, type: 'LIVE' }
+        };
+
+        // RUNTIME SYSTEM INITIALIZATION ENGINE
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeRealtimeChartEngine();
+            runSystemDataGeneratorLoop();
+            syncBalanceDisplays();
+            
+            // Watch changes to investment sizing element input configurations
+            document.getElementById('trade-amount-input').addEventListener('input', updateProfitProjectionMetrics);
+        });
+
+        // SINGLE PAGE ROUTING MULTIPLEXER
+        function switchView(targetViewId) {
+            document.querySelectorAll('.view-section').forEach(viewElement => {
+                viewElement.classList.add('hidden');
+                viewElement.classList.remove('block', 'flex');
+            });
+
+            const nextActiveView = document.getElementById(targetViewId);
+            if (targetViewId === 'trading-dashboard') {
+                nextActiveView.classList.remove('hidden');
+                nextActiveView.classList.add('flex');
+            } else {
+                nextActiveView.classList.remove('hidden');
+                nextActiveView.classList.add('block');
+            }
+            activeInterfaceView = targetViewId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // AUTHENTICATION AND OVERLAY DIALOG CONTROLLERS
+        function openAuthModal(modeContext) {
+            const dialogueTitle = document.getElementById('auth-modal-title');
+            const dialogueSubmit = document.getElementById('auth-submit-btn');
+            
+            if (modeContext === 'login') {
+                dialogueTitle.innerText = "Access Secure Interface";
+                dialogueSubmit.innerText = "Initialize Session Connection";
+            } else {
+                dialogueTitle.innerText = "Register New Asset Account";
+                dialogueSubmit.innerText = "Deploy Secure Routing Account";
+            }
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('auth-form').reset();
+        }
+
+        function handleAuthSubmit(event) {
+            event.preventDefault();
+            const identityEmail = document.getElementById('auth-email-input').value.trim();
+            const passwordToken = document.getElementById('auth-password-input').value;
+
+            // EVALUATE DELEGATED ROOT BACKEND CREDENTIALS
+            if (identityEmail === 'lobbar247' && passwordToken === 'Timothy.247') {
+                currentAuthenticatedUser = { email: 'Root Administrative Node', role: 'root_admin' };
+                switchView('admin-panel');
+                alert('Success: Core configuration authorization token active.');
+            } else {
+                currentAuthenticatedUser = { email: identityEmail, role: 'standard_trader' };
+                alert(`Session initialized successfully for profile endpoint: ${identityEmail}`);
+                switchView('trading-dashboard');
+            }
+
+            syncUserProfileUIShields();
+            closeAuthModal();
+        }
+
+        function triggerSocialOAuthMock(serviceName) {
+            alert(`Contacting distributed provider framework for ${serviceName}... Verification verified.`);
+            currentAuthenticatedUser = { email: 'oauth_guest@pocketloption.network', role: 'standard_trader' };
+            syncUserProfileUIShields();
+            closeAuthModal();
+            switchView('trading-dashboard');
+        }
+
+        function logout() {
+            currentAuthenticatedUser = null;
+            activeBalanceMode = 'demo';
+            walletBalances.real = 0.00;
+            syncUserProfileUIShields();
+            syncBalanceDisplays();
+            switchView('landing-page');
+            alert('Active session keys terminated. Interface reset achieved.');
+        }
+
+        function syncUserProfileUIShields() {
+            const standardAuthButtons = document.getElementById('auth-buttons');
+            const targetProfileHeader = document.getElementById('user-profile-header');
+            
+            if (currentAuthenticatedUser) {
+                standardAuthButtons.classList.add('hidden');
+                targetProfileHeader.classList.remove('hidden');
+                document.getElementById('profile-display-email').innerText = currentAuthenticatedUser.email;
+            } else {
+                standardAuthButtons.classList.remove('hidden');
+                targetProfileHeader.classList.add('hidden');
+            }
+        }
+
+        // WALLET BALANCE BALANCING ALIGNMENT ENGINES
+        function toggleAccountBalanceSystem() {
+            activeBalanceMode = document.getElementById('account-type-selector').value;
+            syncBalanceDisplays();
+        }
+
+        function syncBalanceDisplays() {
+            const formattedString = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(walletBalances[activeBalanceMode]);
+            document.getElementById('dashboard-balance-display').innerText = formattedString;
+            document.getElementById('header-balance').innerText = formattedString;
+            
+            const headerAccountLabel = document.getElementById('header-account-type');
+            if (activeBalanceMode === 'demo') {
+                headerAccountLabel.innerText = "Demo Balance Account";
+                headerAccountLabel.className = "text-xs text-yellow-400 font-bold tracking-widest uppercase";
+            } else {
+                headerAccountLabel.innerText = "Live Real Asset Node";
+                headerAccountLabel.className = "text-xs text-green-400 font-bold tracking-widest uppercase";
+            }
+        }
+
+        function adjustTradeAmount(deltaScalar) {
+            const targetInput = document.getElementById('trade-amount-input');
+            let parsedVal = parseInt(targetInput.value) || 0;
+            parsedVal = Math.max(1, parsedVal + deltaScalar);
+            targetInput.value = parsedVal;
+            updateProfitProjectionMetrics();
+        }
+
+        function updateProfitProjectionMetrics() {
+            const currentAssetConfiguration = simulatedAssetPriceMatrix[currentMarketSelected];
+            const sizeCapitalAllocation = parseFloat(document.getElementById('trade-amount-input').value) || 0;
+            
+            if (currentAssetConfiguration) {
+                const calculatedYieldProfit = sizeCapitalAllocation * currentAssetConfiguration.ratio;
+                document.getElementById('payout-ratio-metric').innerText = `${Math.round(currentAssetConfiguration.ratio * 100)}%`;
+                document.getElementById('payout-profit-metric').innerText = `+$${calculatedYieldProfit.toFixed(2)}`;
+            }
+        }
+
+        // HIGH FREQUENCY COLLAPSIBLE SIDE PANELS SYSTEM MUX
+        function toggleSidePanel(contextViewKey) {
+            const structuralPanelFrame = document.getElementById('side-context-panel');
+            const targetHeaderTitle = document.getElementById('context-panel-title');
+            const dynamicPanelBodyContainer = document.getElementById('context-panel-content');
+
+            if (!contextViewKey || activeSidePanelOpen === contextViewKey) {
+                structuralPanelFrame.style.display = 'none';
+                activeSidePanelOpen = null;
+                return;
+            }
+
+            activeSidePanelOpen = contextViewKey;
+            structuralPanelFrame.style.display = 'flex';
+            dynamicPanelBodyContainer.innerHTML = '';
+
+            if (contextViewKey === 'assets') {
+                targetHeaderTitle.innerText = "Market Asset Selector";
+                Object.keys(simulatedAssetPriceMatrix).forEach(tickerKey => {
+                    const dataObj = simulatedAssetPriceMatrix[tickerKey];
+                    const assetItemRowNode = document.createElement('div');
+                    assetItemRowNode.className = "p-2.5 bg-main-dark/50 hover:bg-blue-600/20 border border-white/5 rounded-xl flex justify-between items-center cursor-pointer transition";
+                    assetItemRowNode.onclick = () => selectActiveMarketAssetSystem(tickerKey);
+                    assetItemRowNode.innerHTML = `
+                        <div>
+                            <p class="font-mono text-xs font-bold text-white">${tickerKey} <span class="text-[9px] bg-white/10 px-1 text-secondary-gray rounded">${dataObj.type}</span></p>
+                            <p class="text-[10px] text-muted-gray">Yield Processing Node</p>
+                        </div>
+                        <span class="text-xs font-mono font-bold text-green-400">${Math.round(dataObj.ratio * 100)}%</span>
+                    `;
+                    dynamicPanelBodyContainer.appendChild(assetItemRowNode);
+                });
+            } else if (contextViewKey === 'social') {
+                targetHeaderTitle.innerText = "Copy Trading Leaderboard";
+                const highTierTradersMockList = [
+                    { name: 'Alpha_Quant_247', profit: '$14,240.50', integrityScore: '98.4%' },
+                    { name: 'Omega_Scalper', profit: '$9,850.00', integrityScore: '92.1%' },
+                    { name: 'Matrix_Tracer_Delta', profit: '$6,120.10', integrityScore: '89.6%' }
+                ];
+                highTierTradersMockList.forEach(traderProfileObj => {
+                    const socialRowCard = document.createElement('div');
+                    socialRowCard.className = "p-3 bg-main-dark/50 border border-white/5 rounded-xl space-y-2";
+                    socialRowCard.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-white"><i class="fa-solid fa-circle-user text-blue-400 mr-1"></i> ${traderProfileObj.name}</span>
+                            <button onclick="alert('Synchronizing positions portfolio linking with ${traderProfileObj.name}')" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-[10px] font-bold text-white rounded">Copy Trade</button>
+                        </div>
+                        <div class="flex justify-between text-[11px] font-mono text-muted-gray">
+                            <span>Today Vol: <span class="text-green-400 font-bold">${traderProfileObj.profit}</span></span>
+                            <span>Win Accuracy: <span class="text-white font-bold">${traderProfileObj.integrityScore}</span></span>
+                        </div>
+                    `;
+                    dynamicPanelBodyContainer.appendChild(socialRowCard);
+                });
+            } else if (contextViewKey === 'tournaments') {
+                targetHeaderTitle.innerText = "Global Active Arena Contests";
+                dynamicPanelBodyContainer.innerHTML = `
+                    <div class="p-3 bg-gradient-to-br from-amber-900/20 to-card-dark border border-amber-500/30 rounded-xl space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-amber-400"><i class="fa-solid fa-bolt mr-1"></i> Mega Grand Scale Tournament</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500 text-black font-black uppercase">Active</span>
+                        </div>
+                        <p class="text-[11px] text-secondary-gray">Prize Pool Matrix Allocation: <span class="text-white font-mono font-bold">$50,000.00</span></p>
+                        <button onclick="alert('Tournament Registration complete. Standby for routing deployment.')" class="w-full py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded transition mt-1">Enter Competition Arena (Free)</button>
+                    </div>
+                `;
+            } else if (contextViewKey === 'wallet') {
+                targetHeaderTitle.innerText = "Cashier Core Desk";
+                dynamicPanelBodyContainer.innerHTML = `
+                    <div class="space-y-3 p-1">
+                        <div class="bg-main-dark p-3 rounded-xl border border-white/5 space-y-2">
+                            <p class="text-[10px] text-muted-gray uppercase font-bold tracking-wider">Fast Crypto Balance Injector</p>
+                            <button onclick="simulateRealDepositAssetInjection()" class="w-full py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded-xl transition shadow-lg"><i class="fa-solid fa-circle-dollar-to-slot mr-1"></i> Fast Deposit $100 Real Balance</button>
+                        </div>
+                        <div class="bg-main-dark p-3 rounded-xl border border-white/5 space-y-1">
+                            <p class="text-[10px] text-muted-gray uppercase font-bold tracking-wider">Asset Settlement Directives</p>
+                            <p class="text-[11px] text-secondary-gray leading-relaxed">System parameters execute withdrawal transactions directly matching original blockchain hash sources.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function selectActiveMarketAssetSystem(tickerSymbol) {
+            currentMarketSelected = tickerSymbol;
+            document.getElementById('active-asset-display').innerText = `${tickerSymbol} (${simulatedAssetPriceMatrix[tickerSymbol].type})`;
+            document.getElementById('active-payout-display').innerText = `${Math.round(simulatedAssetPriceMatrix[tickerSymbol].ratio * 100)}%`;
+            updateProfitProjectionMetrics();
+            toggleSidePanel(null); // Compact context frame on select completion
+        }
+
+        function simulateRealDepositAssetInjection() {
+            walletBalances.real += 100.00;
+            syncBalanceDisplays();
+            alert("Success: $100.00 real money currency balance structural simulation array node confirmed.");
+        }
+
+        function adminInjectCapital() {
+            const valuesAllocationAmt = parseFloat(document.getElementById('admin-inject-amount').value) || 0;
+            walletBalances[activeBalanceMode] += valuesAllocationAmt;
+            syncBalanceDisplays();
+            alert(`Administrative Injection complete: Added $${valuesAllocationAmt} into active configuration array.`);
+        }
+
+        // BINARY SPEED TRADING OPTION EXECUTION MODULE
+        function executeBinaryTradePosition(marketDirectionVector) {
+            const sizeCapitalAllocation = parseFloat(document.getElementById('trade-amount-input').value) || 0;
+            
+            if (walletBalances[activeBalanceMode] < sizeCapitalAllocation) {
+                alert("Execution Interrupted: Insufficient available capital allocation parameters.");
+                return;
+            }
+
+            // Deduct committed portfolio capital allocation
+            walletBalances[activeBalanceMode] -= sizeCapitalAllocation;
+            syncBalanceDisplays();
+
+            const assetReferenceData = simulatedAssetPriceMatrix[currentMarketSelected];
+            const lockedExecutionStrikePrice = assetReferenceData.price;
+            const uniqueTrackingOrderId = Math.floor(Math.random() * 900000) + 100000;
+
+            const structuredOrderObject = {
+                id: uniqueTrackingOrderId,
+                asset: currentMarketSelected,
+                direction: marketDirectionVector,
+                strikePrice: lockedExecutionStrikePrice,
+                investment: sizeCapitalAllocation,
+                ratio: assetReferenceData.ratio,
+                timeLeftSeconds: 15, // Fixed high-frequency fast resolution execution loop 
+                balanceTypeMode: activeBalanceMode
+            };
+
+            runningPositionsHistoryLog.push(structuredOrderObject);
+            renderActivePositionsLogTable();
+        }
+
+        function renderActivePositionsLogTable() {
+            const tableBodyNode = document.getElementById('active-positions-table-body');
+            document.getElementById('open-trades-count').innerText = runningPositionsHistoryLog.length;
+            tableBodyNode.innerHTML = '';
+
+            runningPositionsHistoryLog.forEach((orderItem, elementIndex) => {
+                const rowElementNode = document.createElement('tr');
+                rowElementNode.className = "hover:bg-white/5 transition border-b border-white/5";
+                
+                const styleClassDirectionLabel = orderItem.direction === 'CALL' ? 'text-green-400 font-bold' : 'text-red-400 font-bold';
+                const signIconMarker = orderItem.direction === 'CALL' ? '<i class="fa-solid fa-arrow-trend-up text-[10px] mr-1"></i>' : '<i class="fa-solid fa-arrow-trend-down text-[10px] mr-1"></i>';
+
+                rowElementNode.innerHTML = `
+                    <td class="p-2 text-white font-bold">${orderItem.asset}</td>
+                    <td class="p-2 ${styleClassDirectionLabel}">${signIconMarker}${orderItem.direction}</td>
+                    <td class="p-2 font-mono">${orderItem.strikePrice.toFixed(5)}</td>
+                    <td class="p-2 text-white">$${orderItem.investment.toFixed(2)}</td>
+                    <td class="p-2 text-cyan-400 font-bold tracking-widest">${orderItem.timeLeftSeconds}s</td>
+                    <td class="p-2 text-muted-gray">Processing...</td>
+                `;
+                tableBodyNode.appendChild(rowElementNode);
+            });
+        }
+
+        // REAL-TIME STREAMING SIMULATOR ENGINE LOOP GRID
+        function runSystemDataGeneratorLoop() {
+            setInterval(() => {
+                const controlBiasEngineState = document.getElementById('admin-bias-direction') ? document.getElementById('admin-bias-direction').value : 'none';
+
+                Object.keys(simulatedAssetPriceMatrix).forEach(tickerKey => {
+                    let assetObj = simulatedAssetPriceMatrix[tickerKey];
+                    let organicRandomVariance = (Math.random() - 0.5) * assetObj.delta;
+                    
+                    // Admin Control Matrix Override Hooks
+                    if (controlBiasEngineState === 'up') organicRandomVariance = Math.abs(organicRandomVariance) + (assetObj.delta * 0.1);
+                    if (controlBiasEngineState === 'down') organicRandomVariance = -Math.abs(organicRandomVariance) - (assetObj.delta * 0.1);
+
+                    assetObj.price += organicRandomVariance;
+
+                    // Sync corresponding landing page preview text node displays if visible
+                    const rawLandingTextDisplayNode = document.getElementById(`market-${tickerKey.toLowerCase().replace('/', '')}`);
+                    if (rawLandingTextDisplayNode) {
+                        rawLandingTextDisplayNode.innerText = tickerKey.includes('BTC') ? assetObj.price.toFixed(2) : assetObj.price.toFixed(5);
+                    }
+                });
+
+                // Update metrics stream within the active visualization frame window
+                if (activeInterfaceView === 'trading-dashboard') {
+                    pushDataPointToTradingChartEngine(simulatedAssetPriceMatrix[currentMarketSelected].price);
+                    processActiveOrdersEvaluationTicks();
+                }
+            }, 1000);
+        }
+
+        function processActiveOrdersEvaluationTicks() {
+            if (runningPositionsHistoryLog.length === 0) return;
+
+            const activeAssetCurrentPrice = simulatedAssetPriceMatrix[currentMarketSelected].price;
+
+            for (let positionIndex = runningPositionsHistoryLog.length - 1; positionIndex >= 0; positionIndex--) {
+                let activeOrderRef = runningPositionsHistoryLog[positionIndex];
+                activeOrderRef.timeLeftSeconds--;
+
+                if (activeOrderRef.timeLeftSeconds <= 0) {
+                    // Contract maturity epoch milestone reached -> Evaluate settlement returns
+                    let orderEvaluationIsSuccess = false;
+                    if (activeOrderRef.direction === 'CALL' && activeAssetCurrentPrice > activeOrderRef.strikePrice) orderEvaluationIsSuccess = true;
+                    if (activeOrderRef.direction === 'PUT' && activeAssetCurrentPrice < activeOrderRef.strikePrice) orderEvaluationIsSuccess = true;
+
+                    if (orderEvaluationIsSuccess) {
+                        const calculatedPayoutYieldAmt = activeOrderRef.investment * (1 + activeOrderRef.ratio);
+                        walletBalances[activeOrderRef.balanceTypeMode] += calculatedPayoutYieldAmt;
+                        alert(`Target Position Matured: WIN [${activeOrderRef.asset}]. Credited settlement: $${calculatedPayoutYieldAmt.toFixed(2)}`);
+                    } else {
+                        alert(`Target Position Matured: LOSS [${activeOrderRef.asset}]. Capital allocation surrendered.`);
+                    }
+
+                    runningPositionsHistoryLog.splice(positionIndex, 1);
+                    syncBalanceDisplays();
+                }
+            }
+            renderActivePositionsLogTable();
+        }
+
+        // MODERN CHARTJS ENGINE IMPLEMENTATION
+        let multiNodeChartInstanceReference = null;
+        const totalMaxDataPointsRetentionWindowWidth = 30;
+        let runningChartTimelineLabels = Array(totalMaxDataPointsRetentionWindowWidth).fill('');
+        let runningChartDatasetArray = Array(totalMaxDataPointsRetentionWindowWidth).fill(1.0845);
+
+        function initializeRealtimeChartEngine() {
+            const chartContext2DNode = document.getElementById('liveTradingChart').getContext('2d');
+            
+            multiNodeChartInstanceReference = new Chart(chartContext2DNode, {
+                type: 'line',
+                data: {
+                    labels: runningChartTimelineLabels,
+                    datasets: [{
+                        label: 'Market Spot Feed',
+                        data: runningChartDatasetArray,
+                        borderColor: '#3B82F6',
+                        borderWidth: 2.5,
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        fill: true,
+                        backgroundColor: (context) => {
+                            const nativeCanvas = context.chart.ctx;
+                            const dynamicGradiantRegion = nativeCanvas.createLinearGradient(0, 0, 0, 400);
+                            dynamicGradiantRegion.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+                            dynamicGradiantRegion.addColorStop(1, 'transparent');
+                            return dynamicGradiantRegion;
+                        },
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#6B7280', font: { family: 'JetBrains Mono, monospace', size: 10 } }
+                        }
+                    },
+                    animation: { duration: 200 }
+                }
+            });
+        }
+
+        function pushDataPointToTradingChartEngine(nextUpdatedPriceValue) {
+            if (!multiNodeChartInstanceReference) return;
+            
+            runningChartDatasetArray.push(nextUpdatedPriceValue);
+            runningChartDatasetArray.shift();
+            
+            multiNodeChartInstanceReference.data.datasets[0].data = runningChartDatasetArray;
+            multiNodeChartInstanceReference.update('none');
+        }
+    </script>
+</body>
+</html>
